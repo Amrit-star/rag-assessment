@@ -1,0 +1,39 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.env
+.venv
+venv/
+env/
+
+# Sentence-transformers model cache
+.cache/
+~/.cache/huggingface/
+
+# FAISS index persistence (dev only)
+index_store/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Claude Code internals
+.claude/
+
+# Personal / planning docs — not part of submission
+plan.md
+implementation.md
+implementation.pdf
+GenAI_RAG_VectorSearch_Assessment.pdf

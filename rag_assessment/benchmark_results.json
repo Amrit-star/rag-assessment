@@ -1,0 +1,244 @@
+{
+  "metadata": {
+    "generated_at": "2026-05-12T16:00:56.676537",
+    "embedding_model": "all-MiniLM-L6-v2",
+    "embedding_dim": 384,
+    "index_type": "FAISS IndexFlatIP (Cosine Similarity)",
+    "dataset": "C:\\Users\\AmritKumar\\Downloads\\rag_assessment\\data\\technical_context.json",
+    "top_k": 3
+  },
+  "results": [
+    {
+      "query": "How does the system handle peak load?",
+      "expanded_query": "How does the system handle peak load? horizontal scaling auto-scaling HPA load balancing traffic spike capacity planning throughput rate limiting pod replicas node pool manage orchestrate",
+      "strategy_a": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.4395,
+            "text": "Traffic shaping controls are applied at multiple layers to protect backend services from overload. Cloud Load Balancing's backend service configuration sets a maximum RPS per backend instance, directing overflow traffic to a global capacity pool rather than overloading individual instances. Istio's traffic management applies connection pool limits at the sidecar level: a maximum of 100 concurrent HTTP connections and 1,000 requests per second per upstream host, with excess requests failing fast with 503 rather than queuing. Adaptive concurrency limiting (implemented in Envoy) dynamically adjusts concurrency limits based on latency measurements, reducing limits when latency rises above the gradient threshold. Priority queuing routes health check and authentication traffic to a high-priority queue, ensuring monitoring and login paths remain available during overload."
+          },
+          {
+            "rank": 2,
+            "score": 0.3988,
+            "text": "Workloads run on Google Kubernetes Engine (GKE) with Horizontal Pod Autoscaler (HPA) configured to scale pod replicas based on CPU utilization and custom Pub/Sub queue depth metrics exported to Cloud Monitoring. The Cluster Autoscaler manages node pool capacity, provisioning new nodes during traffic spikes and decommissioning idle nodes to optimize cost. Vertical Pod Autoscaler (VPA) right-sizes resource requests for stateful components. During peak load events the system scales from 3 to 50 pod replicas in under 90 seconds, maintaining throughput without manual intervention."
+          },
+          {
+            "rank": 3,
+            "score": 0.3836,
+            "text": "Kubernetes ResourceQuotas and LimitRanges govern compute resource consumption across namespaces. Each namespace has a ResourceQuota capping total CPU requests at 16 cores and memory requests at 64Gi, preventing any single team's workload from monopolising cluster capacity. LimitRanges set default CPU limits at 500m and memory limits at 512Mi for containers without explicit limits, ensuring all containers are bounded. Priority classes differentiate between critical system pods (PriorityClass: system-cluster-critical), production workloads (PriorityClass: high), and batch jobs (PriorityClass: low), ensuring the scheduler evicts low-priority pods to make room for high-priority workloads during resource contention. Vertical Pod Autoscaler in recommendation-only mode provides right-sizing suggestions that are reviewed and applied as part of quarterly cost optimisation cycles."
+          }
+        ],
+        "avg_score": 0.4073
+      },
+      "strategy_b": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.7953,
+            "text": "Workloads run on Google Kubernetes Engine (GKE) with Horizontal Pod Autoscaler (HPA) configured to scale pod replicas based on CPU utilization and custom Pub/Sub queue depth metrics exported to Cloud Monitoring. The Cluster Autoscaler manages node pool capacity, provisioning new nodes during traffic spikes and decommissioning idle nodes to optimize cost. Vertical Pod Autoscaler (VPA) right-sizes resource requests for stateful components. During peak load events the system scales from 3 to 50 pod replicas in under 90 seconds, maintaining throughput without manual intervention."
+          },
+          {
+            "rank": 2,
+            "score": 0.6668,
+            "text": "Kubernetes ResourceQuotas and LimitRanges govern compute resource consumption across namespaces. Each namespace has a ResourceQuota capping total CPU requests at 16 cores and memory requests at 64Gi, preventing any single team's workload from monopolising cluster capacity. LimitRanges set default CPU limits at 500m and memory limits at 512Mi for containers without explicit limits, ensuring all containers are bounded. Priority classes differentiate between critical system pods (PriorityClass: system-cluster-critical), production workloads (PriorityClass: high), and batch jobs (PriorityClass: low), ensuring the scheduler evicts low-priority pods to make room for high-priority workloads during resource contention. Vertical Pod Autoscaler in recommendation-only mode provides right-sizing suggestions that are reviewed and applied as part of quarterly cost optimisation cycles."
+          },
+          {
+            "rank": 3,
+            "score": 0.6491,
+            "text": "Event-driven workloads use KEDA (Kubernetes Event-Driven Autoscaling) to scale consumer deployments based on Pub/Sub subscription backlog depth. KEDA polls the Cloud Monitoring API every 30 seconds for queue metrics and adjusts replica count proportionally, scaling to zero when there are no messages and to 100 replicas during batch processing windows. This eliminates the latency of CPU-based HPA triggers for queue consumers where load is determined by message volume, not CPU. KEDA scalers for Cloud Tasks and BigQuery table row counts enable database-triggered and task-queue-triggered scaling patterns without custom metric exporters."
+          }
+        ],
+        "avg_score": 0.7037
+      },
+      "delta": 0.2964
+    },
+    {
+      "query": "What happens when the database goes down?",
+      "expanded_query": "What happens when the database goes down? Cloud SQL Spanner PostgreSQL read replica primary connection pooling sharding failover outage unavailable circuit breaker replica promotion",
+      "strategy_a": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.3962,
+            "text": "Cloud SQL for PostgreSQL is deployed in a high-availability configuration with a synchronous standby replica in a separate availability zone. Automated failover is triggered within 60 seconds when the primary instance becomes unreachable, promoting the standby without manual intervention. Read replicas in three regions offload analytical queries from the primary write path. Connection pooling via PgBouncer manages up to 10,000 concurrent connections, preventing connection exhaustion during failover windows. Replica promotion and DNS cutover are fully automated through Cloud SQL's internal orchestration layer."
+          },
+          {
+            "rank": 2,
+            "score": 0.361,
+            "text": "Graceful shutdown ensures in-flight requests complete cleanly when pods are terminated during deployments, autoscaling scale-downs, or node drains. When Kubernetes sends SIGTERM, the application stops accepting new connections, waits for active requests to complete (up to 30 seconds), flushes pending metrics and log buffers, and then exits with code 0. The terminationGracePeriodSeconds is set to 60 seconds to provide buffer beyond the application's 30-second drain window. preStop lifecycle hooks add a 5-second sleep before SIGTERM to allow time for load balancer endpoints to be deregistered and for in-flight requests routed via iptables to drain. Connection pool shutdown flushes pending database transactions before closing connections, preventing partial writes."
+          },
+          {
+            "rank": 3,
+            "score": 0.3554,
+            "text": "The system targets a Recovery Time Objective (RTO) of 15 minutes and a Recovery Point Objective (RPO) of 5 minutes in the event of a full regional outage. Cloud SQL cross-region read replicas can be promoted to primary via automated Cloud Run workflows triggered by Cloud Monitoring alerting policies. Application configuration and FAISS index snapshots are stored in Cloud Storage multi-region buckets with object versioning enabled. Runbooks for each tier-1 failure scenario are tested quarterly through structured GameDay exercises, with results tracked in a post-mortem database to drive continuous improvement."
+          }
+        ],
+        "avg_score": 0.3709
+      },
+      "strategy_b": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.7393,
+            "text": "Cloud SQL for PostgreSQL is deployed in a high-availability configuration with a synchronous standby replica in a separate availability zone. Automated failover is triggered within 60 seconds when the primary instance becomes unreachable, promoting the standby without manual intervention. Read replicas in three regions offload analytical queries from the primary write path. Connection pooling via PgBouncer manages up to 10,000 concurrent connections, preventing connection exhaustion during failover windows. Replica promotion and DNS cutover are fully automated through Cloud SQL's internal orchestration layer."
+          },
+          {
+            "rank": 2,
+            "score": 0.5301,
+            "text": "Applications connect to Cloud SQL exclusively through the Cloud SQL Auth Proxy, which handles IAM-based authentication, TLS encryption, and automatic certificate rotation without requiring network-level access to Cloud SQL. The proxy runs as a sidecar container in each application pod, listening on localhost:5432 for PostgreSQL connections. This eliminates the need to manage SSL certificates in application configuration and ensures that database credentials are never transmitted in plaintext. The proxy validates the connecting service account's IAM permissions on every new connection, so revoking a service account's Cloud SQL access takes effect without restarting the application. Connection pooling is configured in the proxy with a maximum of 100 connections per pod, with overflow connections queued rather than rejected."
+          },
+          {
+            "rank": 3,
+            "score": 0.4877,
+            "text": "Database traffic is split between primary write instances and read replicas to distribute load and protect write throughput. The application data access layer routes all INSERT, UPDATE, and DELETE statements to the primary, while SELECT queries are directed to a round-robin pool of read replicas unless the query is part of a read-your-writes transaction. Read replicas in Cloud SQL have typical replication lag under 100 milliseconds; for operations requiring zero replication lag (such as post-write verification reads), a session-level hint forces routing to the primary. Replica promotion lag during failover is monitored as an SLO, with alerts if replication lag exceeds 30 seconds. Separate connection pools for read and write paths prevent a surge in read traffic from exhausting connections available to write operations."
+          }
+        ],
+        "avg_score": 0.5857
+      },
+      "delta": 0.2148
+    },
+    {
+      "query": "How do you keep users logged in?",
+      "expanded_query": "How do you keep users logged in? authentication JWT session token Redis Memorystore stateless refresh token",
+      "strategy_a": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.3008,
+            "text": "User authentication relies on JSON Web Tokens (JWT) signed with RSA-256. The system is fully stateless \u2014 no server-side session state is persisted \u2014 allowing any pod replica to serve any authenticated request without affinity. Short-lived access tokens (15-minute TTL) are paired with longer-lived refresh tokens (7-day TTL) stored in Memorystore for Redis. Token revocation is implemented via a distributed blocklist in Redis with TTL matching the original expiry. This stateless design supports horizontal scaling without sticky sessions, distributed session synchronization, or shared filesystem access between replicas."
+          },
+          {
+            "rank": 2,
+            "score": 0.2534,
+            "text": "User authentication follows the OAuth 2.0 Authorization Code flow with PKCE (Proof Key for Code Exchange) for all web and mobile clients. Identity Provider integration supports Google Workspace, Okta, and Azure AD via OIDC federation, enabling single sign-on for enterprise customers. The identity platform issues short-lived ID tokens (15 minutes) and long-lived refresh tokens stored in HttpOnly, Secure, SameSite=Strict cookies to prevent XSS-based token theft. Token introspection validates JWT signatures using cached public keys fetched from the IdP's JWKS endpoint, refreshed every hour. Suspicious login events (impossible travel, new device) trigger step-up authentication challenges via Duo Security push notifications."
+          },
+          {
+            "rank": 3,
+            "score": 0.23,
+            "text": "Centralised log management aggregates logs from all GKE workloads, Cloud Run services, and GCP managed services into Cloud Logging. Log-based exports route security-relevant logs to Chronicle (Google's cloud SIEM) for threat detection, operational logs to BigQuery for long-term retention and SQL-based analysis, and alerting logs to Pub/Sub for real-time processing. Log sampling at 10% is applied to high-volume access logs for cost control, while error and warning logs are always exported at 100%. Structured logging enforced through a shared logging library ensures all application logs include trace_id, span_id, user_id, and request_id fields, enabling efficient log-to-trace correlation in Cloud Trace. Log exclusion filters suppress noisy health check and readiness probe logs that provide no diagnostic value."
+          }
+        ],
+        "avg_score": 0.2614
+      },
+      "strategy_b": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.6499,
+            "text": "User authentication relies on JSON Web Tokens (JWT) signed with RSA-256. The system is fully stateless \u2014 no server-side session state is persisted \u2014 allowing any pod replica to serve any authenticated request without affinity. Short-lived access tokens (15-minute TTL) are paired with longer-lived refresh tokens (7-day TTL) stored in Memorystore for Redis. Token revocation is implemented via a distributed blocklist in Redis with TTL matching the original expiry. This stateless design supports horizontal scaling without sticky sessions, distributed session synchronization, or shared filesystem access between replicas."
+          },
+          {
+            "rank": 2,
+            "score": 0.4003,
+            "text": "User authentication follows the OAuth 2.0 Authorization Code flow with PKCE (Proof Key for Code Exchange) for all web and mobile clients. Identity Provider integration supports Google Workspace, Okta, and Azure AD via OIDC federation, enabling single sign-on for enterprise customers. The identity platform issues short-lived ID tokens (15 minutes) and long-lived refresh tokens stored in HttpOnly, Secure, SameSite=Strict cookies to prevent XSS-based token theft. Token introspection validates JWT signatures using cached public keys fetched from the IdP's JWKS endpoint, refreshed every hour. Suspicious login events (impossible travel, new device) trigger step-up authentication challenges via Duo Security push notifications."
+          },
+          {
+            "rank": 3,
+            "score": 0.396,
+            "text": "API rate limiting is enforced at two layers: Apigee Gateway for external clients and an in-process Redis-based token bucket for internal service-to-service calls. The token bucket algorithm allows short bursts above the steady-state rate (up to 2x for 5 seconds) while maintaining the average rate over a 60-second window, providing a better user experience than fixed-window counters that cause cliff-edge resets. Per-user rate limits are keyed by authenticated user ID in Redis, ensuring one misbehaving client cannot exhaust quota for others. Clients approaching their limit receive a Retry-After header indicating when quota will next be available, allowing well-behaved clients to back off gracefully."
+          }
+        ],
+        "avg_score": 0.4821
+      },
+      "delta": 0.2207
+    },
+    {
+      "query": "How do you know when something breaks?",
+      "expanded_query": "How do you know when something breaks? monitoring alerting SLO Cloud Monitoring Cloud Trace error budget p99 latency incident PagerDuty",
+      "strategy_a": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.2793,
+            "text": "Production changes follow a structured change management process to minimise unplanned outages. Changes are categorised as standard (pre-approved, low-risk routine changes), normal (require CAB review), or emergency (immediate escalation path for critical incident remediation). Standard changes include scheduled deployments, certificate renewals, and scaling adjustments \u2014 these execute automatically via CI/CD without manual gates. Normal changes are documented in a change request with impact assessment, rollback plan, and test evidence, reviewed asynchronously by the Change Advisory Board in Jira. A change freeze is enforced for 72 hours before and after major business events (product launches, end-of-quarter), during which only emergency changes are approved. Post-change monitoring dashboards are reviewed for 30 minutes after each production change."
+          },
+          {
+            "rank": 2,
+            "score": 0.2753,
+            "text": "Kubernetes liveness, readiness, and startup probes are configured separately to handle distinct failure modes. The startup probe uses a generous failure threshold (30 attempts, 10-second intervals) for slow-starting services, preventing liveness probe failures during initialisation. The liveness probe checks only that the process is alive and not deadlocked \u2014 a lightweight HTTP endpoint returning 200 without database checks that would cause cascading restart loops if the database is slow. The readiness probe performs deeper checks: HTTP 200, database connection pool health, and downstream dependency reachability, and is used by the load balancer to route traffic only to fully ready pods. Dependency health is exposed at /health/dependencies as a structured JSON response showing the status of each external integration independently."
+          },
+          {
+            "rank": 3,
+            "score": 0.266,
+            "text": "Incidents are managed through a structured process: detection via Cloud Monitoring alerts, triage by the on-call engineer via PagerDuty, declaration of severity (P1\u2013P4), and coordination in a dedicated Slack war-room channel. P1 incidents (full outage, data loss) require an Incident Commander and Communications Lead within 5 minutes of declaration. A shared Google Doc serves as the live incident timeline, updated every 5 minutes with symptoms, hypotheses tested, and actions taken. Customer communication is posted to the status page within 10 minutes of P1/P2 declaration. Postmortems are completed within 5 business days, reviewed in a weekly reliability meeting, and action items tracked in Jira with SLA-bound due dates."
+          }
+        ],
+        "avg_score": 0.2735
+      },
+      "strategy_b": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.6229,
+            "text": "Operational visibility is delivered through Cloud Monitoring with custom dashboards tracking p50, p95, and p99 latency percentiles per microservice. Cloud Trace captures distributed traces across all service boundaries, enabling root-cause analysis of latency regressions. Service Level Objectives define availability (99.9%) and latency (p95 < 200ms) targets, with error budget burn-rate alerts firing when consumption exceeds 2x the acceptable rate. Structured JSON logs with severity, trace ID, and request context are written to Cloud Logging. Synthetic monitoring probes execute health checks every 60 seconds from multiple GCP regions."
+          },
+          {
+            "rank": 2,
+            "score": 0.5911,
+            "text": "Service Level Objectives are defined collaboratively between engineering and product using the four golden signals: latency, traffic, errors, and saturation. Latency SLOs specify that 99% of requests must complete within 200ms measured at the load balancer, excluding known outlier request types. Error rate SLOs define that fewer than 0.1% of non-4xx requests may result in 5xx errors over any 30-day window. SLIs are implemented as Cloud Monitoring ratio metrics and visualised on team-owned SLO dashboards. Error budget burn rate alerts have two thresholds: a fast burn alert (consuming 5% of monthly budget in 1 hour) and a slow burn alert (consuming 10% of budget in 6 hours), providing early warning of reliability degradation before the monthly budget is exhausted."
+          },
+          {
+            "rank": 3,
+            "score": 0.5812,
+            "text": "Incidents are managed through a structured process: detection via Cloud Monitoring alerts, triage by the on-call engineer via PagerDuty, declaration of severity (P1\u2013P4), and coordination in a dedicated Slack war-room channel. P1 incidents (full outage, data loss) require an Incident Commander and Communications Lead within 5 minutes of declaration. A shared Google Doc serves as the live incident timeline, updated every 5 minutes with symptoms, hypotheses tested, and actions taken. Customer communication is posted to the status page within 10 minutes of P1/P2 declaration. Postmortems are completed within 5 business days, reviewed in a weekly reliability meeting, and action items tracked in Jira with SLA-bound due dates."
+          }
+        ],
+        "avg_score": 0.5984
+      },
+      "delta": 0.3249
+    },
+    {
+      "query": "What if an entire region fails?",
+      "expanded_query": "What if an entire region fails? disaster recovery multi-region RTO RPO failover Cloud Storage cross-region replica promotion runbook",
+      "strategy_a": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.3579,
+            "text": "The system targets a Recovery Time Objective (RTO) of 15 minutes and a Recovery Point Objective (RPO) of 5 minutes in the event of a full regional outage. Cloud SQL cross-region read replicas can be promoted to primary via automated Cloud Run workflows triggered by Cloud Monitoring alerting policies. Application configuration and FAISS index snapshots are stored in Cloud Storage multi-region buckets with object versioning enabled. Runbooks for each tier-1 failure scenario are tested quarterly through structured GameDay exercises, with results tracked in a post-mortem database to drive continuous improvement."
+          },
+          {
+            "rank": 2,
+            "score": 0.3371,
+            "text": "Multi-region availability is achieved through GKE Fleet, which groups clusters across us-central1, europe-west1, and asia-east1 into a logical fleet for unified configuration management. Fleet-scope RBAC policies apply consistently across all member clusters, eliminating per-cluster IAM drift. Config Sync watches a Git repository and applies Kubernetes manifests to all fleet clusters automatically, ensuring configuration parity. Multi-cluster Ingress distributes user traffic to the nearest healthy cluster using a global Anycast VIP. When a cluster becomes unhealthy \u2014 due to a regional outage or failed upgrade \u2014 Multi-cluster Ingress automatically reroutes traffic to remaining healthy clusters without DNS TTL delays."
+          },
+          {
+            "rank": 3,
+            "score": 0.2728,
+            "text": "Site Reliability Engineering practices govern production changes through error budget policies. Each service's SLO defines an acceptable error rate (e.g., 0.1% of requests may fail) over a 30-day rolling window. The remaining allowable failures constitute the error budget. When the error budget is consumed beyond 50%, all non-critical feature deployments are frozen and engineering focus shifts to reliability improvements. Blameless postmortems are conducted within 48 hours of any SLO breach, producing a written timeline, root cause analysis, and action items with owners and due dates. Error budget consumption is tracked on a live Looker dashboard visible to all engineers."
+          }
+        ],
+        "avg_score": 0.3226
+      },
+      "strategy_b": {
+        "results": [
+          {
+            "rank": 1,
+            "score": 0.7129,
+            "text": "The system targets a Recovery Time Objective (RTO) of 15 minutes and a Recovery Point Objective (RPO) of 5 minutes in the event of a full regional outage. Cloud SQL cross-region read replicas can be promoted to primary via automated Cloud Run workflows triggered by Cloud Monitoring alerting policies. Application configuration and FAISS index snapshots are stored in Cloud Storage multi-region buckets with object versioning enabled. Runbooks for each tier-1 failure scenario are tested quarterly through structured GameDay exercises, with results tracked in a post-mortem database to drive continuous improvement."
+          },
+          {
+            "rank": 2,
+            "score": 0.4865,
+            "text": "Multi-region availability is achieved through GKE Fleet, which groups clusters across us-central1, europe-west1, and asia-east1 into a logical fleet for unified configuration management. Fleet-scope RBAC policies apply consistently across all member clusters, eliminating per-cluster IAM drift. Config Sync watches a Git repository and applies Kubernetes manifests to all fleet clusters automatically, ensuring configuration parity. Multi-cluster Ingress distributes user traffic to the nearest healthy cluster using a global Anycast VIP. When a cluster becomes unhealthy \u2014 due to a regional outage or failed upgrade \u2014 Multi-cluster Ingress automatically reroutes traffic to remaining healthy clusters without DNS TTL delays."
+          },
+          {
+            "rank": 3,
+            "score": 0.4551,
+            "text": "Resilience is validated through structured chaos engineering experiments using LitmusChaos deployed on GKE. Experiments target specific failure modes: pod deletion, network latency injection, CPU starvation, and Cloud SQL connection termination. Each experiment defines a steady-state hypothesis (e.g., p99 latency remains below 500ms) measured against Cloud Monitoring before, during, and after fault injection. Experiments run weekly in a dedicated chaos namespace, with automated rollback if the steady-state hypothesis is violated. Results are published to a resilience dashboard tracking the system's blast radius for each failure scenario. Passing chaos experiments are a gating condition for promoting new service versions to production."
+          }
+        ],
+        "avg_score": 0.5515
+      },
+      "delta": 0.2289
+    }
+  ],
+  "summary": {
+    "overall_avg_score_a": 0.3271,
+    "overall_avg_score_b": 0.5843,
+    "overall_delta": 0.2571,
+    "strategy_b_wins": 5,
+    "total_queries": 5
+  }
+}
